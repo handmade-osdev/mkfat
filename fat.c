@@ -135,22 +135,6 @@ fn bool fat_format_fname(u1 buffer[11], u1 *fname)
     return true;
 }
 
-fn u1 *fname_from_rname(u1 *rname)
-{
-    u1 *last = rname;
-
-    u1 *str = rname;
-    while(*str) {
-        if(*str == '/') {
-            ++str;
-            last = str;
-        }
-        ++str;
-    }
-
-    return last;
-}
-
 fn void fat_write_host_file(file_info *fi, u1 *rname)
 {
     FILE *file = fopen(rname, "rb");

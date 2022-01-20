@@ -4,6 +4,22 @@
 
 void typedef (dir_recurse_f)(void*,u1*,u1*,bool);
 
+fn u1 *fname_from_rname(u1 *rname)
+{
+    u1 *last = rname;
+
+    u1 *str = rname;
+    while(*str) {
+        if(*str == '/') {
+            ++str;
+            last = str;
+        }
+        ++str;
+    }
+
+    return last;
+}
+
 fn void dir_recurse(void *ptr, u1 *rname, u1 *fname, dir_recurse_f *user_recurse)
 {
     DIR *dir_ptr = opendir(rname);

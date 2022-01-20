@@ -9,6 +9,11 @@ void typedef (dir_recurse_f)(
     bool is_dir_flag
 );
 
+fn u1 *fname_from_rname(u1 *rname)
+{
+    // get the short filename from the relative filename.
+}
+
 fn void dir_recurse(
     void *ptr,
     u1 *rname,
