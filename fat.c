@@ -25,8 +25,8 @@ fn u8 fat_subdivide_disk(fat_type type, u8 split_ss, u8 clus_ss, u8 *fat_ss_o, u
 
 fn void fat_decide_params(u8 disk_ss, fat_type type)
 {
-    u8 resv_ss = 1;
-    u8 root_ss = 1;
+    u8 resv_ss = 6;
+    u8 root_ss = 9;
     if(type == fat_32) root_ss = 0;
 
     u8 split_ss = disk_ss - resv_ss - root_ss;
