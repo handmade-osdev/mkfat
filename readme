@@ -1,0 +1,42 @@
+
+mkfat 1.0                                                 2022-01-21 / bumbread
+-------------------------------------------------------------------------------
+
+mkfat is a command-line utility made for Linux and Windows that allows you to
+create FAT 12/16/32 images with files from a specified directory, without the
+need to use loop devices, mounting anything and requiring superuser privilege.
+
+
+FORMAT
+
+    mkfat <fat-type> <image-size> <image> <root> [-b boot]
+
+The <fat-type> argument specifies numeric argument for the FAT type that is to
+be created. It has to be either "12", "16" or "32". Other values are invalid.
+
+The <image-size> argument specifies the size of the image to be created. If the
+image of a given size doesn't support the given FAT type, then an error is
+returned. The format of <image-size> is as follows:
+
+    <decimal-number><unit>
+
+Where <unit> is a letter, either "k", "m", "g" or nothing. They stand for
+kilobyte, megabyte and gigabyte respectively. If no unit is specified, the
+number is treated as the number of sectors.
+
+The <image> is the filename of the image to be created. If the file <image>
+already exists, it is overwritten.
+
+The <root> points to the directory, from which the files are to be transferred
+to the image. The tree is preserved. Note that the filenames in the image file
+are going to be capitalised.
+
+If you specify -b option, the first 512 bytes of the <boot> file are going to
+be written to the image. The parts of the boot record that correspond to BPB
+are going to get overwritten.
+
+
+LIMITATIONS
+
+Currently mkfat does not support unicode filenames and filenames that exceed
+the 8.3 (DOS) format.

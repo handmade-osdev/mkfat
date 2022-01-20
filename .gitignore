@@ -1,0 +1,10 @@
+disk
+boot
+root/
+mnt/
+
+mkfat
+
+*.pdb
+*.obj
+*.lnk

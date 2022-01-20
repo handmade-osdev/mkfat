@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc -g mkfat.c -omkfat -DP_USE_POSIX -Wno-unused-result
