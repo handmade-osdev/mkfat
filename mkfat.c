@@ -171,6 +171,7 @@ i4 main(i4 argc, char *argv[])
         type = fat_32;
     } else {
         fprintf(stderr, "Unknown FAT type: %s\n", fat_name);
+        exit(1);
     }
 
     fat_decide_params(disk_ss, type);
