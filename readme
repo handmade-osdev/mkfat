@@ -29,7 +29,8 @@ already exists, it is overwritten.
 
 The <root> points to the directory, from which the files are to be transferred
 to the image. The tree is preserved. Note that the filenames in the image file
-are going to be capitalised.
+are going to be capitalised. Do not end the root directory name with forward
+slash.
 
 If you specify -b option, the first 512 bytes of the <boot> file are going to
 be written to the image. The parts of the boot record that correspond to BPB
