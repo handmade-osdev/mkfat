@@ -17,6 +17,11 @@ fn void str_copy_nonull(u1 *dest, u1 *src)
     }
 }
 
+fn u8 alignf(u8 p, u8 a)
+{
+    return (p+a-1)&~(a-1);
+}
+
 fn void fat_recurse_dir(dir_info *dir, u1 *rname, u1 *fname, bool file_is_dir)
 {
     printf("Processing: %s\n", rname);
@@ -59,9 +64,8 @@ fn void fat_recurse_dir(dir_info *dir, u1 *rname, u1 *fname, bool file_is_dir)
     fat_format_fname(node->name, fname);
 
     if(file_is_dir) {
-        node->attr |= ATTR_DIR;
-
         u8 clus = fat_alloc_clus(vol.first_free);
+        node->attr |= ATTR_DIR;
         node->clus_lo = clus&0xffff;
         node->clus_hi = clus>>4;
         node->size = 0;
@@ -88,11 +92,10 @@ fn void fat_recurse_dir(dir_info *dir, u1 *rname, u1 *fname, bool file_is_dir)
 
         dir_recurse(&di, rname, fname, (dir_recurse_f *)fat_recurse_dir);
     } else {
-        node->attr |= ATTR_ARC;
-
         file_info fi;
         fat_write_host_file(&fi, rname);
 
+        node->attr |= ATTR_ARC;
         node->clus_lo = fi.first_co & 0xffff;
         node->clus_hi = fi.first_co >> 16;
         node->size = fi.size;
@@ -228,7 +231,7 @@ i4 main(i4 argc, char *argv[])
 
     dir_recurse(&dir, start_name, fname_from_rname(start_name), (dir_recurse_f *)fat_recurse_dir);
 
-    u8 root_ents = ((dir.size+511)&~(u8)511)/32;
+    u8 root_ents = alignf(dir.size, 512)/32;
 
     str_copy_nonull(vol.bpb->oem, "MKFAT1.0");
     vol.bpb->sec_bs = 512;
@@ -236,9 +239,9 @@ i4 main(i4 argc, char *argv[])
     vol.bpb->resv_ss = vol.resv_ss;
     vol.bpb->fats_n = 2;
     vol.bpb->rootents_n = ((vol.type == fat_32)?0:root_ents);
-    vol.bpb->disk_ss16 = vol.disk_ss <= 0xffff ? vol.disk_ss : 0;
+    vol.bpb->disk_ss16 = (vol.type != fat_32 && vol.disk_ss <= 0xffff) ? vol.disk_ss : 0;
     vol.bpb->vol_type = 0xf8;
-    vol.bpb->fat_ss16 = vol.fat_ss <= 0xffff ? vol.fat_ss : 0;
+    vol.bpb->fat_ss16 = ((vol.type != fat_32) && vol.fat_ss <= 0xffff) ? vol.fat_ss : 0;
     vol.bpb->track_ss = 0;
     vol.bpb->heads_n = 0;
     vol.bpb->hidden_ss = 0;
@@ -253,13 +256,13 @@ i4 main(i4 argc, char *argv[])
         vol.bpb32->backup_so = 2;
         vol.bpb32->drive = 0x80;
         vol.bpb32->nt_flags = 0;
-        vol.bpb32->signature = 0;
+        vol.bpb32->signature = 0x29;
         str_copy_nonull(vol.bpb32->vol_label, "MKFAT   1.0");
         str_copy_nonull(vol.bpb32->fat_label, "FAT32   ");
     } else {
         vol.bpb16->drive = 0x80;
         vol.bpb16->nt_flags = 0;
-        vol.bpb16->signature = 0;
+        vol.bpb16->signature = 0x29;
         vol.bpb16->vol_id = 0;
         str_copy_nonull(vol.bpb16->vol_label, "MKFAT   1.0");
         str_copy_nonull(vol.bpb16->fat_label, "FAT16   ");
@@ -269,11 +272,20 @@ i4 main(i4 argc, char *argv[])
     fwrite(boot, 1, 512, vol.image);
     fflush(vol.image);
 
-    u8 ents = fat_ents_per_sec[vol.type];
-    for(u8 i = 0; i != vol.fat_ss; ++i) {
+    u8 sec_ents_n = fat_ents_per_sec[vol.type];
+    for(u8 sec_i = 0; sec_i != vol.fat_ss; ++sec_i) {
         u1 fat_sec[512] = {0};
-        for(u8 j = 0; j != ents; ++j) {
-            u8 entry = vol.fat[i*ents + j] & fat_entry_mask[vol.type];
+
+        for(u8 j = 0; j != sec_ents_n; ++j) {
+
+            u8 clus_i = sec_i*sec_ents_n + j;
+            u8 entry;
+            if(clus_i < vol.data_cs) {
+                entry = vol.fat[clus_i] & fat_entry_mask[vol.type];
+            } else {
+                entry = 0;
+            }
+
             if(vol.type == fat_32) {
                 ((u4 *)fat_sec)[j] = entry;
             } else if(vol.type == fat_16) {
@@ -288,10 +300,11 @@ i4 main(i4 argc, char *argv[])
                 }
             }
         }
-        fseek(vol.image, 512*(vol.resv_ss+i), SEEK_SET);
+
+        fseek(vol.image, 512*(vol.resv_ss+sec_i), SEEK_SET);
         fwrite(fat_sec, 1, 512, vol.image);
         fflush(vol.image);
-        fseek(vol.image, 512*(vol.resv_ss+vol.fat_ss+i), SEEK_SET);
+        fseek(vol.image, 512*(vol.resv_ss+vol.fat_ss+sec_i), SEEK_SET);
         fwrite(fat_sec, 1, 512, vol.image);
         fflush(vol.image);
     }

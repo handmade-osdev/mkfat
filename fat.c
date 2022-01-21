@@ -10,8 +10,8 @@ fn u8 fat_subdivide_disk(fat_type type, u8 split_ss, u8 clus_ss, u8 *fat_ss_o, u
     u8 fat_ss = (split_ss + unit - 1) / unit;
     u8 data_ss = split_ss - 2*fat_ss;
     u8 data_cs = data_ss / clus_ss;
-    u8 addr = fat_ss*fat_ents_per_sec[type];
-    if(data_cs < addr) {
+    u8 addr = fat_ss*fat_ents_per_sec[type]-2;
+    if(addr < data_cs) {
         u8 secs = clus_ss;
         if(clus_ss % 2 == 0) {
             secs /= 2;
@@ -25,8 +25,8 @@ fn u8 fat_subdivide_disk(fat_type type, u8 split_ss, u8 clus_ss, u8 *fat_ss_o, u
 
 fn void fat_decide_params(u8 disk_ss, fat_type type)
 {
-    u8 resv_ss = 6;
-    u8 root_ss = 9;
+    u8 resv_ss = 1;
+    u8 root_ss = 1;
     if(type == fat_32) root_ss = 0;
 
     u8 split_ss = disk_ss - resv_ss - root_ss;
