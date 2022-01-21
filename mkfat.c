@@ -253,7 +253,7 @@ i4 main(i4 argc, char *argv[])
         vol.bpb32->version = 0;
         vol.bpb32->root_co = dir_co;
         vol.bpb32->fsinfo_so = 1;
-        vol.bpb32->backup_so = 2;
+        vol.bpb32->backup_so = 0;
         vol.bpb32->drive = 0x80;
         vol.bpb32->nt_flags = 0;
         vol.bpb32->signature = 0x29;

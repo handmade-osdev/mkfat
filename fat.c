@@ -25,7 +25,7 @@ fn u8 fat_subdivide_disk(fat_type type, u8 split_ss, u8 clus_ss, u8 *fat_ss_o, u
 
 fn void fat_decide_params(u8 disk_ss, fat_type type)
 {
-    u8 resv_ss = 1;
+    u8 resv_ss = 8;
     u8 root_ss = 1;
     if(type == fat_32) root_ss = 0;
 
@@ -126,10 +126,10 @@ fn bool fat_format_fname(u1 buffer[11], u1 *fname)
     }
       
     i4 i = 0;
-    for(;i<name_n; ++i) buffer[i]=fname[i];
+    for(;i<name_n; ++i) buffer[i]=to_upper(fname[i]);
     for(;i<8;      ++i) buffer[i]=' ';
     i4 j = 0;
-    for(;j<ext_n;++j)   buffer[8+j]=ext[j];
+    for(;j<ext_n;++j)   buffer[8+j]=to_upper(ext[j]);
     for(;j<3;    ++j)   buffer[8+j]=' ';
     
     return true;
